@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_plate_vehicle_root" name="Simple Vehicle" sequence="10"/>
+
+    <menuitem
+        id="menu_plate_vehicle"
+        name="Vehicles"
+        parent="menu_plate_vehicle_root"
+        action="action_plate_vehicle"
+        sequence="10"
+    />
+</odoo>
