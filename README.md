@@ -39,7 +39,7 @@ The token is stored in Odoo using the system parameter:
 
 ## Notes
 
-- If no token is configured, the module will ask you to configure it in `Settings`.
+- If no token is configured, the module will ask you to configure it in `Settings`. Under Settings, there is Vehicle Plate Extractor and under the Plate Recognition, put the API token.
 - If no plate is detected, try a clearer image.
 - The addon uses the external Plate Recognizer service, so internet access from the Odoo server is required.
 
