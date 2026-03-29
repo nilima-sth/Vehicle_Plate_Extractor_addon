@@ -9,6 +9,7 @@
     "data": [
         "data/hide_fleet_menus.xml",
         "security/ir.model.access.csv",
+        "views/res_config_settings_views.xml",
         "views/vehicle_views.xml",
         "views/menu.xml",
     ],

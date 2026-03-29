@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_plate_recognizer" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.plate.recognizer</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Vehicle Plate Extractor" name="fleet_plate_extractor">
+                    <block title="Plate Recognition">
+                        <setting
+                            id="plate_recognizer_api_token"
+                            string="Plate Recognizer API Token"
+                            help="Token used to authenticate requests to Plate Recognizer."
+                        >
+                            <field
+                                name="plate_recognizer_api_token"
+                                password="True"
+                                placeholder="Enter your Plate Recognizer API token"
+                            />
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>
