@@ -21,7 +21,7 @@
                     <group>
                         <field name="model_name"/>
                         <field name="plate_image" widget="image"/>
-                        <field name="license_plate" readonly="1"/>
+                        <field name="license_plate" readonly="1" force_save="1"/>
                         <field name="tag_ids" widget="many2many_tags"/>
                     </group>
                 </sheet>

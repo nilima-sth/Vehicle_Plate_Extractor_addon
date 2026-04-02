@@ -26,10 +26,10 @@
                         <field name="tag_ids" widget="many2many_tags"/>
                     </group>
                     <group string="OCR Output">
-                        <field name="nepali_plate_text" readonly="1"/>
-                        <field name="nepali_plate_digits_ascii" readonly="1"/>
-                        <field name="nepali_plate_confidence" readonly="1"/>
-                        <field name="nepali_ocr_error" readonly="1" invisible="not nepali_ocr_error"/>
+                        <field name="nepali_plate_text" readonly="1" force_save="1"/>
+                        <field name="nepali_plate_digits_ascii" readonly="1" force_save="1"/>
+                        <field name="nepali_plate_confidence" readonly="1" force_save="1"/>
+                        <field name="nepali_ocr_error" readonly="1" force_save="1" invisible="not nepali_ocr_error"/>
                     </group>
                 </sheet>
             </form>

@@ -162,10 +162,27 @@ class NepaliPlateVehicle(models.Model):
             if record.image:
                 extracted = record._extract_nepali_from_image(raise_on_error=False)
                 if extracted:
-                    record.update(extracted)
+                    # assign fields explicitly so the client registers the changes
+                    record.nepali_plate_text = extracted.get("nepali_plate_text")
+                    record.nepali_plate_digits_ascii = extracted.get("nepali_plate_digits_ascii")
+                    record.nepali_plate_confidence = extracted.get("nepali_plate_confidence")
+                    record.nepali_ocr_state = extracted.get("nepali_ocr_state")
+                    # nepali_ocr_error may be False or a string
+                    record.nepali_ocr_error = extracted.get("nepali_ocr_error")
 
     def action_extract_nepali_plate(self):
         for record in self:
-            extracted = record._extract_nepali_from_image(raise_on_error=True)
-            record.write(extracted)
+            try:
+                extracted = record._extract_nepali_from_image(raise_on_error=True)
+                record.write(extracted)
+            except UserError as exc:
+                # mark record as error and save the OCR error message, then re-raise
+                try:
+                    record.write({
+                        "nepali_ocr_state": "error",
+                        "nepali_ocr_error": str(exc),
+                    })
+                except Exception:
+                    pass
+                raise
         return True
