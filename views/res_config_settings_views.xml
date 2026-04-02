@@ -7,17 +7,55 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <app string="Vehicle Plate Extractor" name="fleet_plate_extractor">
-                    <block title="Plate Recognition">
+                    <block title="English Plate Extraction">
                         <setting
                             id="plate_recognizer_api_token"
                             string="Plate Recognizer API Token"
-                            help="Token used to authenticate requests to Plate Recognizer."
+                            help="Token used by English plate extraction requests (Plate Recognizer API)."
                         >
                             <field
                                 name="plate_recognizer_api_token"
                                 password="True"
                                 placeholder="Enter your Plate Recognizer API token"
                             />
+                        </setting>
+                    </block>
+
+                    <block title="Nepali OCR Extraction">
+                        <setting
+                            id="nepali_ocr_api_token"
+                            string="Nepali OCR API Token"
+                            help="Token sent in X-API-Token header for Nepali OCR requests."
+                        >
+                            <field
+                                name="nepali_ocr_api_token"
+                                password="True"
+                                placeholder="Enter your Nepali OCR API token"
+                            />
+                        </setting>
+                        <setting
+                            id="ocr_base_url"
+                            string="OCR Base URL"
+                            help="Base URL for the Nepali OCR service. Example: http://127.0.0.1:5000"
+                        >
+                            <field
+                                name="ocr_base_url"
+                                placeholder="http://127.0.0.1:5000"
+                            />
+                        </setting>
+                        <setting
+                            id="ocr_timeout_seconds"
+                            string="OCR Timeout (seconds)"
+                            help="Timeout used by Nepali OCR requests."
+                        >
+                            <field name="ocr_timeout_seconds"/>
+                        </setting>
+                        <setting
+                            id="nepali_engine"
+                            string="Default Nepali Engine"
+                            help="Engine sent in Nepali OCR requests."
+                        >
+                            <field name="nepali_engine" placeholder="traific"/>
                         </setting>
                     </block>
                 </app>

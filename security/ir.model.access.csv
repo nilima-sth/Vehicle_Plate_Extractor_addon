@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_plate_vehicle_user,access.plate.vehicle.user,model_plate_vehicle,base.group_user,1,1,1,1
 access_plate_vehicle_tag_user,access.plate.vehicle.tag.user,model_plate_vehicle_tag,base.group_user,1,1,1,1
+access_plate_vehicle_nepali_user,access.plate.vehicle.nepali.user,model_plate_vehicle_nepali,base.group_user,1,1,1,1

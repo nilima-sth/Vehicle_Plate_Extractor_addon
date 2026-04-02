@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_plate_vehicle_nepali_tree" model="ir.ui.view">
+        <field name="name">plate.vehicle.nepali.tree</field>
+        <field name="model">plate.vehicle.nepali</field>
+        <field name="arch" type="xml">
+            <list string="Nepali Plates">
+                <field name="name"/>
+                <field name="nepali_plate_text"/>
+                <field name="nepali_plate_digits_ascii"/>
+                <field name="nepali_plate_confidence"/>
+                <field name="tag_ids" widget="many2many_tags"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_plate_vehicle_nepali_form" model="ir.ui.view">
+        <field name="name">plate.vehicle.nepali.form</field>
+        <field name="model">plate.vehicle.nepali</field>
+        <field name="arch" type="xml">
+            <form string="Nepali Plates">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="image" widget="image"/>
+                        <field name="tag_ids" widget="many2many_tags"/>
+                    </group>
+                    <group string="OCR Output">
+                        <field name="nepali_plate_text" readonly="1"/>
+                        <field name="nepali_plate_digits_ascii" readonly="1"/>
+                        <field name="nepali_plate_confidence" readonly="1"/>
+                        <field name="nepali_ocr_error" readonly="1" invisible="not nepali_ocr_error"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_plate_vehicle_nepali" model="ir.actions.act_window">
+        <field name="name">Nepali Plates</field>
+        <field name="res_model">plate.vehicle.nepali</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

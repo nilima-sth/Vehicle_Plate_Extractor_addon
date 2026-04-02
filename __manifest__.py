@@ -11,6 +11,7 @@
         "security/ir.model.access.csv",
         "views/res_config_settings_views.xml",
         "views/vehicle_views.xml",
+        "views/nepali_vehicle_views.xml",
         "views/menu.xml",
     ],
     "installable": True,

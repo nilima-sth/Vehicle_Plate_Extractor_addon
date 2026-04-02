@@ -4,9 +4,17 @@
 
     <menuitem
         id="menu_plate_vehicle"
-        name="Vehicles"
+        name="English Plates"
         parent="menu_plate_vehicle_root"
         action="action_plate_vehicle"
         sequence="10"
+    />
+
+    <menuitem
+        id="menu_plate_vehicle_nepali"
+        name="Nepali Plates"
+        parent="menu_plate_vehicle_root"
+        action="action_plate_vehicle_nepali"
+        sequence="20"
     />
 </odoo>

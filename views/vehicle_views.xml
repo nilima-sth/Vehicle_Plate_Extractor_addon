@@ -4,7 +4,7 @@
         <field name="name">plate.vehicle.tree</field>
         <field name="model">plate.vehicle</field>
         <field name="arch" type="xml">
-            <list string="Vehicles">
+            <list string="English Plates">
                 <field name="model_name"/>
                 <field name="license_plate"/>
                 <field name="tag_ids" widget="many2many_tags"/>
@@ -21,7 +21,7 @@
                     <group>
                         <field name="model_name"/>
                         <field name="plate_image" widget="image"/>
-                        <field name="license_plate"/>
+                        <field name="license_plate" readonly="1"/>
                         <field name="tag_ids" widget="many2many_tags"/>
                     </group>
                 </sheet>
@@ -30,7 +30,7 @@
     </record>
 
     <record id="action_plate_vehicle" model="ir.actions.act_window">
-        <field name="name">Simple Vehicles</field>
+        <field name="name">English Plates</field>
         <field name="res_model">plate.vehicle</field>
         <field name="view_mode">list,form</field>
     </record>
