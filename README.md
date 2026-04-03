@@ -1,81 +1,154 @@
 # Vehicle Plate Extractor
 
-This Odoo addon lets users create simple vehicle records, upload a license plate image, and extract the plate number using the Plate Recognizer API.
+Odoo addon to extract license plates from images and perform Nepali OCR via external APIs.
+
+## Overview
+
+- `plate.vehicle`: basic vehicle with image upload + Plate Recognizer API
+- `plate.vehicle.nepali`: Nepali plate OCR using external OCR service
+- `res.config.settings` parameters configure tokens, endpoints, and timeout
+- Hides default fleet menus via `action_hide_fleet_menus`
 
 ## Requirements
 
 - Odoo 19
-- Python package: `requests`
-- A valid Plate Recognizer API token
+- Python dependency: `requests` (declared in manifest)
+- Module dependency: `base`
+- Internet access on Odoo server for API calls
 
 ## Installation
 
-1. Place the module in your custom addons path.
+1. Copy `fleet_plate_extractor` into your custom addons path.
 2. Restart the Odoo server.
-3. Update the apps list.
-4. Install the `Vehicle Plate Extractor` module.
+3. Update apps list.
+4. Install `Vehicle Plate Extractor`.
 
-## How To Set Up The API Token
+## Configuration
 
-1. Open Odoo.
-2. Go to `Settings`.
-3. Search for `Vehicle Plate Extractor` or `Plate Recognizer API Token`.
-4. In the settings section, enter your Plate Recognizer API token.
-5. Click `Save`.
+### Plate Recognizer account and API key
 
-The token is stored in Odoo using the system parameter:
+1. Visit the Plate Recognizer website:
+   - https://platerecognizer.com/
+2. Sign up for an account and verify your email.
+3. Go to dashboard -> API tokens and create a new token.
+4. Copy the token value and configure in Odoo:
+   - `fleet_plate_extractor.plate_recognizer_api_token`
 
-`fleet_plate_extractor.plate_recognizer_api_token`
+### Nepali OCR settings (optional)
 
-## How To Use
+In Odoo Settings, search for `Vehicle Plate Extractor` and set:
 
-1. Open `Simple Vehicle`.
-2. Go to `Vehicles`.
-3. Create a new vehicle record.
-4. Enter the vehicle model name.
-5. Upload a plate image.
-6. The module will try to extract the plate automatically.
-7. Save the record.
+- Plate Recognizer API token: `fleet_plate_extractor.plate_recognizer_api_token`
+- Nepali OCR API token: `fleet_plate_extractor.nepali_ocr_api_token` (optional fallback to Plate Recognizer token)
+- OCR Base URL: `fleet_plate_extractor.ocr_base_url` (example: `http://127.0.0.1:5000`)
+- Default Nepali Engine: `fleet_plate_extractor.default_nepali_engine` (default: `traific`)
+- OCR Timeout: `fleet_plate_extractor.ocr_timeout_seconds` (default: 20)
 
-## Notes
+> Note: Tokens should be stored in Odoo parameters, not in source code or SCM.
 
-- If no token is configured, the module will ask you to configure it in `Settings`. Under Settings, there is Vehicle Plate Extractor and under the Plate Recognition, put the API token.
-- If no plate is detected, try a clearer image.
-- The addon uses the external Plate Recognizer service, so internet access from the Odoo server is required.
+## Plate Recognizer (License Plate Extractor) Usage
 
-## Security Recommendation
+1. Go to `Simple Vehicle` -> `Vehicles`.
+2. Create a `Vehicle` record.
+3. Fill `Model`.
+4. Upload `Upload Plate Image`.
+5. On image upload, `license_plate` is auto-extracted.
+6. Optionally run action `Extract Plate` (button in form view) to force extraction.
 
-Do not store real API tokens directly in source code or commit them to Git. If a token was previously exposed, rotate or revoke it before publishing the repository.
+### Behavior
 
-## Nepali OCR Setup (Traific Engine)
+- Extracted plate is saved to `license_plate`.
+- If no plate found or API error occurs, user receives a warning.
 
-### 1) On the OCR service host
+## Nepali OCR Usage
 
-1. Export the API token used by the OCR Flask service:
-	- `export OCR_API_TOKEN="<your-secret-token>"`
-2. Start the OCR Flask service.
+1. Go to `Simple Vehicle` -> `Nepali OCR`.
+2. Create `Nepali Plate OCR Vehicle` record.
+3. Fill `Reference` and upload `Upload Plate Image`.
+4. On upload, OCR is attempted automatically (non-blocking).
+5. Use `Run Nepali OCR` action if not auto-run.
 
-### 2) In Odoo Settings
+### Output fields
 
-Open `Settings` and configure the values under `Vehicle Plate Extractor`:
+- `nepali_plate_text`
+- `nepali_plate_digits_ascii`
+- `nepali_plate_confidence`
+- `nepali_ocr_state` (`draft`/`success`/`error`)
+- `nepali_ocr_error`
 
-- `OCR Base URL` (example: `http://127.0.0.1:5000`)
-- `Nepali OCR API Token` (must match `OCR_API_TOKEN`)
-- `Default Nepali Engine` = `traific`
-- Optional timeout with `OCR Timeout (seconds)`
+## Nepali OCR Microservice (traific)
 
-### 3) Validate connectivity
+This module expects a Nepali OCR microservice with a REST interface that accepts image files and returns JSON with OCR results.
 
-1. Open `Simple Vehicle` -> `Nepali OCR`.
-2. Create a record and upload a sample image.
-3. Click `Run Nepali OCR`.
-4. Verify values are stored in:
-	- `nepali_plate_text`
-	- `nepali_plate_digits_ascii`
-	- `nepali_plate_confidence`
+### TraificNPR model source
 
-The Nepali OCR endpoint called by Odoo is:
+- Repo: https://github.com/nilima-sth/nepali-ocrs.git
+- Module folder: `TraificNPR`
+- Startup script included: `TraificNPR/run.sh`
 
-- `POST {OCR_BASE_URL}/api/v1/extract`
+### Recommended local service setup (example)
+
+1. Clone and inspect run script:
+   - `git clone https://github.com/nilima-sth/nepali-ocrs.git`
+   - `cd nepali-ocrs/TraificNPR`
+   - `chmod +x run.sh`
+2. Prepare isolated Python environment (venv) on OCR host.
+3. Install required packages (Flask + OCR engine wrapper). Example:
+   - `pip install flask requests` (plus dependencies from `TraificNPR/pyproject.toml` as needed)
+4. Run service:
+   - `./run.sh` (or follow local instructions in the repo)
+5. Confirm endpoint is reachable:
+   - `curl -X POST http://127.0.0.1:5000/api/v1/extract -H "X-API-Token: <token>" -F "file=@plate.jpg" -F "engine=traific" -F "include_debug=false"`
+
+### Odoo parameter mapping
+
+- `fleet_plate_extractor.nepali_ocr_api_token` (or fallback to Plate Recognizer API token)
+- `fleet_plate_extractor.ocr_base_url` (e.g., `http://127.0.0.1:5000`)
+- `fleet_plate_extractor.default_nepali_engine` (`traific` by default)
+- `fleet_plate_extractor.ocr_timeout_seconds` (default 20)
+
+### Expected microservice contract
+
+- Endpoint: `POST {OCR_BASE_URL}/api/v1/extract`
 - Header: `X-API-Token: <token>`
-- Multipart fields: `file`, `engine=traific`, `include_debug=false`
+- Form data:
+  - `file` (image)
+  - `engine` (e.g. `traific`)
+  - `include_debug` (true/false)
+
+Response expected JSON:
+
+- `status`: `ok` or `error`
+- `plate_text`, `digits_ascii`, `avg_conf` on success
+- `error` on failure
+
+## API Endpoints
+
+- Plate Recognizer: `https://api.platerecognizer.com/v1/plate-reader/`
+- Nepali OCR: `{OCR_BASE_URL}/api/v1/extract`
+  - Header: `X-API-Token: <token>`
+  - Fields: `file`, `engine=<engine>`, `include_debug=false`
+
+## Development and Testing
+
+- Models:
+  - `fleet_plate_extractor/models/vehicle.py`
+  - `fleet_plate_extractor/models/nepali_vehicle.py`
+  - `fleet_plate_extractor/models/res_config_settings.py`
+- Views:
+  - `/views/vehicle_views.xml`
+  - `/views/nepali_vehicle_views.xml`
+  - `/views/res_config_settings_views.xml`
+- Test file: `/tests/test_nepali_ocr.py`
+
+## Security
+
+- Do not commit API tokens into repository.
+- Remove sensitive default values before sharing.
+- Revoke/rotate tokens after exposure.
+
+## Troubleshooting
+
+- Ensure `requests` is installed in Odoo Python environment.
+- If extraction fails, verify API token and network connectivity.
+- For 401/422 from OCR service, confirm `X-API-Token` and engine settings.
