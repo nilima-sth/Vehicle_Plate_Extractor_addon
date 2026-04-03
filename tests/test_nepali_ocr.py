@@ -40,7 +40,7 @@ class TestNepaliOCR(TransactionCase):
             ]
         }
 
-        with patch("odoo.addons.fleet_plate_extractor.models.nepali_vehicle.requests.post", return_value=mocked_response) as mocked_post:
+        with patch("odoo.addons.fleet_plate_extractor.models.ocr_api_service.requests.post", return_value=mocked_response) as mocked_post:
             vehicle.action_extract_nepali_plate()
 
         mocked_post.assert_called_once()
@@ -53,7 +53,6 @@ class TestNepaliOCR(TransactionCase):
         self.assertTrue(vehicle.image)
         self.assertEqual(vehicle.plate_number, "बा १२ च ३४५६")
         self.assertEqual(vehicle.nepali_plate_text, "बा १२ च ३४५६")
-        self.assertEqual(vehicle.nepali_plate_digits_ascii, "12-3456")
         self.assertAlmostEqual(vehicle.nepali_plate_confidence, 0.8732, places=4)
         self.assertFalse(vehicle.nepali_ocr_error)
 
@@ -67,12 +66,19 @@ class TestNepaliOCR(TransactionCase):
         mocked_response.text = '{"error": "Unauthorized"}'
         mocked_response.json.return_value = {"error": "Unauthorized"}
 
-        with patch("odoo.addons.fleet_plate_extractor.models.nepali_vehicle.requests.post", return_value=mocked_response):
+        with patch("odoo.addons.fleet_plate_extractor.models.ocr_api_service.requests.post", return_value=mocked_response):
             with self.assertRaises(UserError):
                 vehicle.action_extract_nepali_plate()
 
         self.assertEqual(vehicle.nepali_ocr_state, "error")
-        self.assertIn("401", vehicle.nepali_ocr_error)
+        self.assertIn("Invalid OCR API token", vehicle.nepali_ocr_error)
+
+    def test_missing_traific_token(self):
+        vehicle = self._make_vehicle()
+        self.params.set_param("traific.api_token", "")
+
+        with self.assertRaises(UserError):
+            vehicle.action_extract_nepali_plate()
 
     def test_missing_traific_base_url(self):
         vehicle = self._make_vehicle()

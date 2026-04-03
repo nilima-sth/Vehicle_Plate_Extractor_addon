@@ -23,41 +23,20 @@
 
                     <block title="Nepali OCR Extraction">
                         <setting
-                            id="nepali_ocr_api_token"
-                            string="Nepali OCR API Token"
-                            help="Token sent in X-API-Token header for Nepali OCR requests."
-                        >
-                            <field
-                                name="nepali_ocr_api_token"
-                                password="True"
-                                placeholder="Enter your Nepali OCR API token"
-                            />
-                        </setting>
-                        <setting
                             id="traific_api_token"
-                            string="Traific API Token"
-                            help="Token used by TraificNPR OCR endpoint; sent as X-API-Token and Bearer token."
+                            string="OCR API Token"
+                            help="Token sent in X-API-Token header for OCR requests."
                         >
                             <field
                                 name="traific_api_token"
                                 password="True"
-                                placeholder="Enter your Traific API token"
-                            />
-                        </setting>
-                        <setting
-                            id="ocr_base_url"
-                            string="OCR Base URL"
-                            help="Base URL for the Nepali OCR service. Example: http://127.0.0.1:5000"
-                        >
-                            <field
-                                name="ocr_base_url"
-                                placeholder="http://127.0.0.1:5000"
+                                placeholder="Enter your OCR API token"
                             />
                         </setting>
                         <setting
                             id="traific_base_url"
-                            string="Traific Base URL"
-                            help="Base URL for TraificNPR service. Example: http://127.0.0.1:5001"
+                            string="OCR Base URL"
+                            help="Base URL for OCR service. Example: http://127.0.0.1:5001"
                         >
                             <field
                                 name="traific_base_url"

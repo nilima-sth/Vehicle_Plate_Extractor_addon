@@ -34,14 +34,13 @@ Odoo addon to extract license plates from images and perform Nepali OCR via exte
 4. Copy the token value and configure in Odoo:
    - `fleet_plate_extractor.plate_recognizer_api_token`
 
-### Nepali OCR settings (optional)
+### Nepali OCR settings
 
 In Odoo Settings, search for `Vehicle Plate Extractor` and set:
 
-- Plate Recognizer API token: `fleet_plate_extractor.plate_recognizer_api_token`
-- Nepali OCR API token: `fleet_plate_extractor.nepali_ocr_api_token` (optional fallback to Plate Recognizer token)
-- OCR Base URL: `fleet_plate_extractor.ocr_base_url` (example: `http://127.0.0.1:5000`)
-- Default Nepali Engine: `fleet_plate_extractor.default_nepali_engine` (default: `traific`)
+- Plate Recognizer API token: `fleet_plate_extractor.plate_recognizer_api_token` (used by `plate.vehicle`)
+- OCR API token: `traific.api_token` (required for `plate.vehicle.nepali`)
+- OCR Base URL: `traific.base_url` (default: `http://127.0.0.1:5001`)
 - OCR Timeout: `fleet_plate_extractor.ocr_timeout_seconds` (default: 20)
 
 > Note: Tokens should be stored in Odoo parameters, not in source code or SCM.
@@ -66,12 +65,12 @@ In Odoo Settings, search for `Vehicle Plate Extractor` and set:
 2. Create `Nepali Plate OCR Vehicle` record.
 3. Fill `Reference` and upload `Upload Plate Image`.
 4. On upload, OCR is attempted automatically (non-blocking).
-5. Use `Run Nepali OCR` action if not auto-run.
+5. No manual button is required; extraction runs as soon as the image is selected.
 
 ### Output fields
 
+- `plate_number`
 - `nepali_plate_text`
-- `nepali_plate_digits_ascii`
 - `nepali_plate_confidence`
 - `nepali_ocr_state` (`draft`/`success`/`error`)
 - `nepali_ocr_error`
@@ -87,13 +86,13 @@ This module expects a Nepali OCR microservice with a REST interface that accepts
 - API route: `POST /api/v1/ocr` — accepts multipart `file` and returns `application/json`
   - Input: multipart form with field `file` (image)
   - Output: `{"plates": [ ... ]}` (JSON)
-  - Error handling: returns `400` for bad requests (e.g., missing file), `401` for auth errors, `500` for server errors with a JSON error message.
-  - Optional token auth: provide header `X-API-Token: <token>` to authenticate requests.
+   - Error handling: returns `400` for bad requests (e.g., missing file), `401` for auth errors, `503` when service is unavailable, and `500` for server errors.
+   - Token auth: provide header `X-API-Token: <token>`.
   - CORS: the service should enable CORS for cross-origin requests when used from other hosts.
 
 ### TraificNPR model source
 
-- Repo: https://github.com/nilima-sth/nepali-ocrs.git
+- Repo: https://github.com/nilima-sth/odoo19-modiule-nepali-plate-extraction-model.git
 - Module folder: `TraificNPR`
 - Startup script included: `TraificNPR/run.sh`
 
@@ -115,15 +114,14 @@ This module expects a Nepali OCR microservice with a REST interface that accepts
 
 ### Odoo parameter mapping
 
-- `fleet_plate_extractor.nepali_ocr_api_token` (or fallback to Plate Recognizer API token)
-- `fleet_plate_extractor.ocr_base_url` (e.g., `http://127.0.0.1:5001`)
-- `fleet_plate_extractor.default_nepali_engine` (`traific` by default)
+- `traific.base_url` (default: `http://127.0.0.1:5001`)
+- `traific.api_token` (required)
 - `fleet_plate_extractor.ocr_timeout_seconds` (default 20)
 
-### Expected microservice contract (alternate JSON API)
+### Expected microservice contract
 
 - Endpoint: `POST {OCR_BASE_URL}/api/v1/ocr`
-- Header: `X-API-Token: <token>` (optional)
+- Header: `X-API-Token: <token>`
 - Form data:
   - `file` (image)
 
@@ -141,13 +139,13 @@ If the TraificNPR microservice runs on a different machine, only the base URL ne
 
 Example parameter names (suggested):
 
-- `traific.url` (e.g. `http://<traific-host>:5001`) or update `fleet_plate_extractor.ocr_base_url`
-- `traific.api_token` or `fleet_plate_extractor.nepali_ocr_api_token`
+- `traific.base_url` (e.g. `http://<traific-host>:5001`)
+- `traific.api_token`
 
 Example Odoo client snippet to build the URL dynamically:
 
 ```python
-TRAIFIC_URL = self.env['ir.config_parameter'].sudo().get_param('traific.url', 'http://127.0.0.1:5001')
+TRAIFIC_URL = self.env['ir.config_parameter'].sudo().get_param('traific.base_url', 'http://127.0.0.1:5001')
 url = f"{TRAIFIC_URL.rstrip('/')}/api/v1/ocr"
 resp = requests.post(url, files={'file': image_file}, headers={'X-API-Token': token}, timeout=timeout)
 ```
@@ -156,7 +154,7 @@ Network / deployment notes:
 
 - Ensure the Traific host is reachable from the Odoo server (DNS/IP, firewall rules, port 5001 open).
 - If the host is behind NAT, use a reachable public IP/DNS and configure port forwarding.
-- Use `https://` if you require encrypted transport and configure valid TLS certificates on the Traific host (update `traific.url` accordingly).
+- Use `https://` if you require encrypted transport and configure valid TLS certificates on the Traific host (update `traific.base_url` accordingly).
 - Increase `fleet_plate_extractor.ocr_timeout_seconds` if network latency is higher.
 - Server-to-server calls do not require CORS; enable CORS only if browser clients will call the API directly.
 
@@ -168,9 +166,15 @@ Behavioral summary:
 ## API Endpoints
 
 - Plate Recognizer: `https://api.platerecognizer.com/v1/plate-reader/`
-- Nepali OCR: `{OCR_BASE_URL}/api/v1/extract`
-  - Header: `X-API-Token: <token>`
-  - Fields: `file`, `engine=<engine>`, `include_debug=false`
+- Nepali OCR: `{traific.base_url}/api/v1/ocr`
+   - Header: `X-API-Token: <token>`
+   - Field: `file`
+
+## Integration Notes
+
+- `plate.vehicle.nepali` extracts automatically when the image is selected (no manual OCR button).
+- Best recognized plate is saved into `plate_number` and `nepali_plate_text`.
+- Network calls are executed through service model `fleet_plate_extractor.ocr_api_service` for easier testing/mocking.
 
 ## Development and Testing
 
@@ -193,5 +197,7 @@ Behavioral summary:
 ## Troubleshooting
 
 - Ensure `requests` is installed in Odoo Python environment.
-- If extraction fails, verify API token and network connectivity.
-- For 401/422 from OCR service, confirm `X-API-Token` and engine settings.
+- If extraction fails, verify `traific.api_token`, `traific.base_url`, and network connectivity.
+- For 401 from OCR service, confirm token value in Odoo Settings.
+- For 400 errors, validate the uploaded image format/content.
+- For 503/timeout errors, check OCR service health and retry.
