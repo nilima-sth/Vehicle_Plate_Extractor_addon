@@ -34,6 +34,17 @@
                             />
                         </setting>
                         <setting
+                            id="traific_api_token"
+                            string="Traific API Token"
+                            help="Token used by TraificNPR OCR endpoint; sent as X-API-Token and Bearer token."
+                        >
+                            <field
+                                name="traific_api_token"
+                                password="True"
+                                placeholder="Enter your Traific API token"
+                            />
+                        </setting>
+                        <setting
                             id="ocr_base_url"
                             string="OCR Base URL"
                             help="Base URL for the Nepali OCR service. Example: http://127.0.0.1:5000"
@@ -41,6 +52,16 @@
                             <field
                                 name="ocr_base_url"
                                 placeholder="http://127.0.0.1:5000"
+                            />
+                        </setting>
+                        <setting
+                            id="traific_base_url"
+                            string="Traific Base URL"
+                            help="Base URL for TraificNPR service. Example: http://127.0.0.1:5001"
+                        >
+                            <field
+                                name="traific_base_url"
+                                placeholder="http://127.0.0.1:5001"
                             />
                         </setting>
                         <setting

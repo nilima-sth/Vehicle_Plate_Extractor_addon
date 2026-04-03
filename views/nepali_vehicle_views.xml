@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <list string="Nepali Plates">
                 <field name="name"/>
+                <field name="plate_number"/>
                 <field name="nepali_plate_text"/>
                 <field name="nepali_plate_digits_ascii"/>
                 <field name="nepali_plate_confidence"/>
@@ -26,6 +27,7 @@
                         <field name="tag_ids" widget="many2many_tags"/>
                     </group>
                     <group string="OCR Output">
+                        <field name="plate_number" readonly="1" force_save="1"/>
                         <field name="nepali_plate_text" readonly="1" force_save="1"/>
                         <field name="nepali_plate_digits_ascii" readonly="1" force_save="1"/>
                         <field name="nepali_plate_confidence" readonly="1" force_save="1"/>

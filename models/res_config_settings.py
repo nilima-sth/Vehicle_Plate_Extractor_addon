@@ -5,6 +5,8 @@ OCR_BASE_URL_PARAM = "fleet_plate_extractor.ocr_base_url"
 OCR_TIMEOUT_PARAM = "fleet_plate_extractor.ocr_timeout_seconds"
 OCR_DEFAULT_NEPALI_ENGINE_PARAM = "fleet_plate_extractor.default_nepali_engine"
 NEPALI_OCR_API_TOKEN_PARAM = "fleet_plate_extractor.nepali_ocr_api_token"
+TRAIFIC_BASE_URL_PARAM = "traific.base_url"
+TRAIFIC_API_TOKEN_PARAM = "traific.api_token"
 
 
 class ResConfigSettings(models.TransientModel):
@@ -18,10 +20,19 @@ class ResConfigSettings(models.TransientModel):
         string="Nepali OCR API Token",
         config_parameter=NEPALI_OCR_API_TOKEN_PARAM,
     )
+    traific_api_token = fields.Char(
+        string="Traific API Token",
+        config_parameter=TRAIFIC_API_TOKEN_PARAM,
+    )
     ocr_base_url = fields.Char(
         string="OCR Base URL",
         config_parameter=OCR_BASE_URL_PARAM,
         default="http://127.0.0.1:5000",
+    )
+    traific_base_url = fields.Char(
+        string="Traific Base URL",
+        config_parameter=TRAIFIC_BASE_URL_PARAM,
+        default="http://127.0.0.1:5001",
     )
     ocr_timeout_seconds = fields.Integer(
         string="OCR Timeout (seconds)",

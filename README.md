@@ -78,7 +78,18 @@ In Odoo Settings, search for `Vehicle Plate Extractor` and set:
 
 ## Nepali OCR Microservice (traific)
 
-This module expects a Nepali OCR microservice with a REST interface that accepts image files and returns JSON with OCR results.
+This module expects a Nepali OCR microservice with a REST interface that accepts image files and returns OCR results. The addon has been tested with the TraificNPR Flask microservice (local development).
+
+### TraificNPR Flask microservice (local dev)
+
+- Base URL: `http://127.0.0.1:5001/`
+- Web route: `POST /` — accepts multipart `file` and returns HTML (existing website UI)
+- API route: `POST /api/v1/ocr` — accepts multipart `file` and returns `application/json`
+  - Input: multipart form with field `file` (image)
+  - Output: `{"plates": [ ... ]}` (JSON)
+  - Error handling: returns `400` for bad requests (e.g., missing file), `401` for auth errors, `500` for server errors with a JSON error message.
+  - Optional token auth: provide header `X-API-Token: <token>` to authenticate requests.
+  - CORS: the service should enable CORS for cross-origin requests when used from other hosts.
 
 ### TraificNPR model source
 
@@ -94,33 +105,65 @@ This module expects a Nepali OCR microservice with a REST interface that accepts
    - `chmod +x run.sh`
 2. Prepare isolated Python environment (venv) on OCR host.
 3. Install required packages (Flask + OCR engine wrapper). Example:
-   - `pip install flask requests` (plus dependencies from `TraificNPR/pyproject.toml` as needed)
-4. Run service:
-   - `./run.sh` (or follow local instructions in the repo)
-5. Confirm endpoint is reachable:
-   - `curl -X POST http://127.0.0.1:5000/api/v1/extract -H "X-API-Token: <token>" -F "file=@plate.jpg" -F "engine=traific" -F "include_debug=false"`
+   - `pip install -r requirements.txt` (or `pip install flask requests` and engine deps)
+4. Run service locally (example using Flask):
+   - `cd TraificNPR`
+   - `FLASK_APP=app.py FLASK_ENV=development flask run --host=127.0.0.1 --port=5001`
+   - or use the bundled startup script: `./run.sh`
+5. Confirm endpoint is reachable (JSON API):
+   - `curl -X POST http://127.0.0.1:5001/api/v1/ocr -F "file=@plate.jpg"`
 
 ### Odoo parameter mapping
 
 - `fleet_plate_extractor.nepali_ocr_api_token` (or fallback to Plate Recognizer API token)
-- `fleet_plate_extractor.ocr_base_url` (e.g., `http://127.0.0.1:5000`)
+- `fleet_plate_extractor.ocr_base_url` (e.g., `http://127.0.0.1:5001`)
 - `fleet_plate_extractor.default_nepali_engine` (`traific` by default)
 - `fleet_plate_extractor.ocr_timeout_seconds` (default 20)
 
-### Expected microservice contract
+### Expected microservice contract (alternate JSON API)
 
-- Endpoint: `POST {OCR_BASE_URL}/api/v1/extract`
-- Header: `X-API-Token: <token>`
+- Endpoint: `POST {OCR_BASE_URL}/api/v1/ocr`
+- Header: `X-API-Token: <token>` (optional)
 - Form data:
   - `file` (image)
-  - `engine` (e.g. `traific`)
-  - `include_debug` (true/false)
 
-Response expected JSON:
+Response expected JSON on success:
 
-- `status`: `ok` or `error`
-- `plate_text`, `digits_ascii`, `avg_conf` on success
-- `error` on failure
+- `plates`: array of plate objects or strings (e.g. `["ABC-1234"]`)
+
+On error, the service should return an appropriate HTTP status code (400/401/500) and JSON body with an `error` message.
+
+### Using TraificNPR on another host (remote service)
+
+If the TraificNPR microservice runs on a different machine, only the base URL needs to change in Odoo — the request format and headers remain the same.
+
+- Recommendation: store the service URL and token in Odoo parameters (Settings -> System Parameters) or use existing addon parameters.
+
+Example parameter names (suggested):
+
+- `traific.url` (e.g. `http://<traific-host>:5001`) or update `fleet_plate_extractor.ocr_base_url`
+- `traific.api_token` or `fleet_plate_extractor.nepali_ocr_api_token`
+
+Example Odoo client snippet to build the URL dynamically:
+
+```python
+TRAIFIC_URL = self.env['ir.config_parameter'].sudo().get_param('traific.url', 'http://127.0.0.1:5001')
+url = f"{TRAIFIC_URL.rstrip('/')}/api/v1/ocr"
+resp = requests.post(url, files={'file': image_file}, headers={'X-API-Token': token}, timeout=timeout)
+```
+
+Network / deployment notes:
+
+- Ensure the Traific host is reachable from the Odoo server (DNS/IP, firewall rules, port 5001 open).
+- If the host is behind NAT, use a reachable public IP/DNS and configure port forwarding.
+- Use `https://` if you require encrypted transport and configure valid TLS certificates on the Traific host (update `traific.url` accordingly).
+- Increase `fleet_plate_extractor.ocr_timeout_seconds` if network latency is higher.
+- Server-to-server calls do not require CORS; enable CORS only if browser clients will call the API directly.
+
+Behavioral summary:
+
+- Do not change the request body: continue to POST multipart/form-data with field `file`.
+- Do not change the response parsing: expect the same JSON `plates` array unless the remote service API changes.
 
 ## API Endpoints
 
